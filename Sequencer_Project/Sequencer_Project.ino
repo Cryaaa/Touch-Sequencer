@@ -1,21 +1,3 @@
-//
-// Created by kiryanenko on 14.09.19.
-//
-
-//////////////////////////////////////////////////////////////////
-// Connections
-//
-// Uno:   SDA <-> A4 (SDA)
-//        SCL <-> A5 (SCL)
-//
-// Mega:  SDA <-> 20 (SDA)
-//        SCL <-> 21 (SCL)
-//
-// Leo:   SDA <-> 2 (SDA)
-//        SCL <-> 3 (SCL)
-//
-//////////////////////////////////////////////////////////////////
-
 
 #include <Wire.h>
 #include <TTP229.h>
@@ -26,34 +8,30 @@ void setup()
 {
     Wire.begin();
     Serial.begin(9600);
-    
+
+    // define digital pins as output
+    for (int i = 2; i < 10; ++i) {
+        pinMode(i, OUTPUT);
+    }
+
 }
 
 void loop()
 {
+    // reset pins to low
+    for (int i = 2; i < 10; ++i) {
+        digitalWrite(i, LOW);
+    }
+
     ttp229.readKeys();
 
-    Serial.print("Key states: ");
-    for (int i = 0; i < 16; ++i) {
+    for (int i = 0; i < 8; ++i) {
+        // variable to adress pin
+        int pinnumber = i + 2;
+        
         if (ttp229.isKeyPress(i)) {
-            Serial.print("1 ");
-        } else {
-            Serial.print("0 ");
-        }
+            digitalWrite (pinnumber, HIGH);
     }
-
-    int key = ttp229.getKey();
-    Serial.print("Pressed key: ");
-    Serial.print(key);
-    //commetna
-
-    Serial.print("   ");
-    if (ttp229.isKeyDown(0)) {
-        Serial.print("Key 0 is down");
-    } else if (ttp229.isKeyUp(0)) {
-        Serial.print("Key 0 is up");
-    }
-
-    Serial.println();
-    delay(5);
+    
+    delay(1);
 }

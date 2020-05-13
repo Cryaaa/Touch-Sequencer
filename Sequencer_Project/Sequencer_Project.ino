@@ -45,6 +45,7 @@ void loop()
     int key = ttp229.getKey();
     Serial.print("Pressed key: ");
     Serial.print(key);
+    //commetna
 
     Serial.print("   ");
     if (ttp229.isKeyDown(0)) {

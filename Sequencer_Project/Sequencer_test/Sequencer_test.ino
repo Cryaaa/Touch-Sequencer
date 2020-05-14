@@ -15,6 +15,21 @@ volatile bool pad_active = false;
 // pad_active[position] is true if this pad has been touched since the last interrupt
 volatile bool pad_state[8] = {false, false, false, false, false, false, false, false};
 
+// definition direction pin as well as old and new values of it
+int direction_pin = 11;
+int direction_pin_value = LOW;
+int direction_pin_value_old = LOW;
+
+// define direction variable
+volatile int direction_variable = 1;
+
+void increase_position(){
+    position = (position + direction_variable)%8;
+    if (position < 0) {
+        position = position + 8;
+    }
+}
+
 // get's called every clock tick and advances the sequencer based on touchpad state
 void clock_trigger(){
     // lets the sequencer advance one step if no pad is activated
@@ -27,16 +42,18 @@ void clock_trigger(){
                 digitalWrite(x+3, LOW);
             }
         }
-        position = (position + 1)%8;
+        increase_position();
     }
+    
     // otherwise some pads have been pressed and the sequencer finds the next step
     // mod 8 from current position to proceed 
     else {
         // here position get's set to the next active pad value
         while (!(pad_state[position])) {
             Serial.println(pad_state[position]);
-            position = (position + 1)%8;
-        }
+            increase_position();
+            }
+        
 
         // advances the sequence to the just determined step
         for (int x = 0; x < 8; x++) {
@@ -49,13 +66,14 @@ void clock_trigger(){
         }
 
         // cleanup
-        position = (position + 1)%8;
+        increase_position();
         pad_active = false;
         for (int i = 0; i<8; i++){
             pad_state[i] = false;
         }
-   } 
-}
+    }
+} 
+
 
 void setup()
 {
@@ -70,6 +88,11 @@ void setup()
     // definition interrupt pin
     pinMode(interrupt_pin, INPUT);
     attachInterrupt(interrupt_pin, clock_trigger, RISING);
+
+    pinMode(direction_pin, INPUT);
+
+    
+
 }
 
 void loop()
@@ -83,4 +106,16 @@ void loop()
             pad_active = true;
         }
     }
+
+    // read direction pin state and write into current value
+    direction_pin_value = digitalRead(direction_pin);
+
+    // see if rising edge is present and change direction
+    if (direction_pin_value == HIGH && direction_pin_value_old == LOW) {
+        direction_variable = direction_variable * -1;
+    }
+    // set old direction to the current
+    direction_pin_value_old = direction_pin_value;
+
+    
 }
